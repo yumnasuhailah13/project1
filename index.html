@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Madinah — The Unity Quest</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font: Inter & Scheherazade New for Arabian feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700;800&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        desert: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
+                            dark: '#1e140a',
+                            night: '#0d0905'
+                        },
+                        emeraldGlow: '#10b981',
+                        goldGlow: '#fbbf24'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        title: ['Cinzel', 'serif'],
+                        arabic: ['Amiri', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0d0905;
+            color: #fef3c7;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(30, 20, 10, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 4px;
+        }
+
+        .text-glow {
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.6), 0 0 30px rgba(217, 119, 6, 0.4);
+        }
+
+        .text-glow-green {
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.8), 0 0 30px rgba(5, 150, 105, 0.5);
+        }
+
+        .box-glow {
+            box-shadow: 0 0 25px rgba(217, 119, 6, 0.3), inset 0 0 15px rgba(251, 191, 36, 0.15);
+        }
+
+        .stone-glow {
+            filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.8));
+            animation: pulseGlow 3s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)); }
+            100% { transform: scale(1.06); filter: drop-shadow(0 0 20px rgba(251, 191, 36, 1)); }
+        }
+
+        .parchment-bg {
+            background: linear-gradient(135deg, #2a1c0d 0%, #1a1006 100%);
+            border: 2px solid #b45309;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* Glassmorphism modal */
+        .glass-panel {
+            background: rgba(26, 16, 6, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(217, 119, 6, 0.4);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between select-none relative">
+
+    <!-- BACKGROUND CANVAS FOR ATMOSPHERIC DESERT & PARTICLES -->
+    <canvas id="bgCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- TOP AUDIO CONTROL BAR -->
+    <header class="relative z-50 p-4 flex justify-between items-center bg-desert-night/80 border-b border-desert-800/50 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-desert-700 to-desert-400 flex items-center justify-center text-desert-night font-bold text-xl shadow-lg">
+                🕌
+            </div>
+            <div>
+                <h1 class="font-title text-desert-300 font-bold tracking-wider text-sm md:text-base">MISSION MADINAH</h1>
+                <p class="text-xs text-desert-400 font-medium">THE UNITY QUEST — PAI KELAS V SD</p>
+            </div>
+        </div>
+
+        <!-- AUDIO CONTROL PANEL -->
+        <div class="flex items-center space-x-2 sm:space-x-4 bg-desert-900/60 p-2 rounded-xl border border-desert-700/40">
+            <!-- Music Volume Slider -->
+            <div class="flex items-center space-x-1 sm:space-x-2">
+                <button id="btnToggleMusic" class="text-desert-300 hover:text-amber-300 text-sm p-1" title="Musik Suasana">
+                    <i class="fa-solid fa-music"></i>
+                </button>
+                <input type="range" id="sliderMusic" min="0" max="1" step="0.05" value="0.4" class="w-12 sm:w-20 accent-amber-500 cursor-pointer">
+            </div>
+
+            <div class="h-4 w-px bg-desert-700/60"></div>
+
+            <!-- SFX Volume Slider -->
+            <div class="flex items-center space-x-1 sm:space-x-2">
+                <button id="btnToggleSFX" class="text-desert-300 hover:text-amber-300 text-sm p-1" title="Efek Suara">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <input type="range" id="sliderSFX" min="0" max="1" step="0.05" value="0.7" class="w-12 sm:w-20 accent-amber-500 cursor-pointer">
+            </div>
+
+            <div class="h-4 w-px bg-desert-700/60"></div>
+
+            <!-- Voice Narration Toggle -->
+            <button id="btnToggleVoice" class="bg-amber-600/30 hover:bg-amber-600/60 border border-amber-500/50 text-amber-200 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition">
+                <i class="fa-solid fa-bullhorn text-xs"></i>
+                <span id="voiceStatusText" class="hidden sm:inline">Suara: ON</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN GAME SCREEN CONTAINER -->
+    <main id="gameContainer" class="relative z-10 flex-grow flex items-center justify-center p-3 md:p-6">
+        
+        <!-- ========================================== -->
+        <!-- SCREEN 0: INTRO CINEMATIC SCREEN           -->
+        <!-- ========================================== -->
+        <section id="screenIntro" class="w-full max-w-4xl text-center space-y-6 py-8 px-4 glass-panel rounded-3xl box-glow">
+            <div class="inline-block bg-amber-500/10 border border-amber-500/30 px-4 py-1.5 rounded-full text-amber-300 text-xs sm:text-sm font-semibold tracking-widest uppercase mb-2">
+                Petualangan Edukasi Digital Interaktif
+            </div>
+
+            <h1 class="font-title text-3xl sm:text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 text-glow">
+                MISSION MADINAH
+            </h1>
+            <h2 class="font-title text-xl sm:text-2xl text-amber-300 font-bold">
+                THE UNITY QUEST
+            </h2>
+
+            <p class="text-desert-200 italic font-serif text-base sm:text-xl max-w-2xl mx-auto border-y border-amber-500/30 py-3">
+                “Temukan Jalan, Bangun Persatuan!”
+            </p>
+
+            <div class="bg-desert-900/80 border border-amber-700/50 p-5 rounded-2xl max-w-2xl mx-auto text-left text-sm sm:text-base text-desert-200 space-y-3 leading-relaxed">
+                <p class="flex items-start space-x-2">
+                    <span class="text-amber-400 text-lg">📜</span>
+                    <span><strong>Petunjuk Kelas:</strong> Mainkan bersama kelompokmu! Diskusi dengan teman sebelum mengambil keputusan terbaik untuk membangun masyarakat Madinah yang bersatu.</span>
+                </p>
+            </div>
+
+            <div class="pt-4">
+                <button id="btnStartAdventure" class="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-desert-night bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 rounded-2xl shadow-2xl hover:scale-105 active:scale-95 transition transform border-2 border-yellow-200 cursor-pointer">
+                    <i class="fa-solid fa-compass text-xl mr-3 group-hover:rotate-45 transition duration-500"></i>
+                    <span>MULAI PETUALANGAN</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 1: FIND THE WAY (MAP & COMPASS)     -->
+        <!-- ========================================== -->
+        <section id="screenFindWay" class="hidden w-full max-w-5xl glass-panel p-6 rounded-3xl box-glow space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center border-b border-amber-700/40 pb-4 gap-4">
+                <div>
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">Tantangan Awal</span>
+                    <h2 class="text-2xl sm:text-3xl font-title text-amber-200 font-bold">🗺️ THE MADINAH MAP: Menemukan Arah</h2>
+                </div>
+                <div class="bg-amber-950/60 border border-amber-600/40 px-4 py-2 rounded-xl text-xs sm:text-sm text-amber-300 flex items-center space-x-2">
+                    <i class="fa-solid fa-location-dot text-red-400 animate-bounce"></i>
+                    <span>Posisi Saat Ini: <strong>MAKKAH → MADINAH</strong></span>
+                </div>
+            </div>
+
+            <!-- Ancient Map Canvas View -->
+            <div class="relative rounded-2xl overflow-hidden border-2 border-amber-700/60 shadow-2xl h-64 sm:h-80 bg-desert-dark">
+                <canvas id="mapCanvas" class="w-full h-full block"></canvas>
+                
+                <!-- Overlay Compass Icon -->
+                <div class="absolute top-4 right-4 bg-desert-night/80 border border-amber-500/50 p-3 rounded-2xl text-center backdrop-blur-md shadow-lg">
+                    <div id="compassNeedle" class="text-3xl text-amber-400 inline-block transition-transform duration-700">🧭</div>
+                    <div class="text-[10px] text-amber-300 font-semibold mt-1">KOMPAS GURUN</div>
+                </div>
+
+                <div class="absolute bottom-4 left-4 bg-desert-night/80 border border-amber-500/40 px-3 py-1.5 rounded-lg text-xs text-amber-200 backdrop-blur-md">
+                    💡 <i>Petunjuk Kompas: Nabi Muhammad SAW menempuh rute Yatsrib (Madinah) melewati arah Utara dengan strategi terencana.</i>
+                </div>
+            </div>
+
+            <!-- Path Selection Cards -->
+            <div class="space-y-3">
+                <h3 class="text-amber-300 font-semibold text-sm sm:text-base flex items-center">
+                    <i class="fa-solid fa-route mr-2 text-amber-400"></i> Pilih Jalur Perjalanan Bersama Kelompokmu:
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Option A -->
+                    <button onclick="checkPathChoice('wrong1')" class="path-btn p-4 rounded-xl parchment-bg hover:border-amber-400 transition text-left space-y-2 group">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-amber-300 group-hover:text-amber-100">Jalur A: Padang Pasir Utama</span>
+                            <span class="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded border border-red-700">Barat Daya</span>
+                        </div>
+                        <p class="text-xs text-desert-200">Jalur terbuka yang biasa dilewati para pedagang, namun mengarah ke wilayah terasing selatan.</p>
+                    </button>
+
+                    <!-- Option B (CORRECT) -->
+                    <button onclick="checkPathChoice('correct')" class="path-btn p-4 rounded-xl parchment-bg hover:border-amber-400 transition text-left space-y-2 group border-amber-500/50">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-amber-300 group-hover:text-amber-100">Jalur B: Rute Pesisir & Oasis</span>
+                            <span class="text-xs bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700">Utara (Strategis)</span>
+                        </div>
+                        <p class="text-xs text-desert-200">Rute memutar melewati wilayah pesisir barat menuju Utara dengan perlindungan oasis alami.</p>
+                    </button>
+
+                    <!-- Option C -->
+                    <button onclick="checkPathChoice('wrong2')" class="path-btn p-4 rounded-xl parchment-bg hover:border-amber-400 transition text-left space-y-2 group">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-amber-300 group-hover:text-amber-100">Jalur C: Pegunungan Berbatu</span>
+                            <span class="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded border border-red-700">Tenggara</span>
+                        </div>
+                        <p class="text-xs text-desert-200">Jalur terjal tanpa mata air yang berisiko memperlambat rombongan perjalanan.</p>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 2: MAIN CITY MAP & PORTALS          -->
+        <!-- ========================================== -->
+        <section id="screenMainMap" class="hidden w-full max-w-6xl glass-panel p-6 rounded-3xl box-glow space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center border-b border-amber-700/40 pb-4 gap-4">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-title text-amber-200 font-bold">🏛️ KOTA MADINAH: Peta Misi Utama</h2>
+                    <p class="text-xs sm:text-sm text-desert-300">Jelajahi 6 portal misi untuk mengumpulkan 6 Unity Stone Persatuan!</p>
+                </div>
+
+                <!-- Unity Stones Collection Bar -->
+                <div class="bg-desert-night/90 border border-amber-600/50 p-2.5 rounded-2xl flex items-center space-x-2 sm:space-x-3">
+                    <span class="text-xs font-bold text-amber-400 mr-1 hidden sm:inline">UNITY STONES:</span>
+                    <div id="stoneBag" class="flex space-x-2">
+                        <!-- 6 Stone slots dynamically rendered -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6 Mission Portals Grid -->
+            <div id="portalGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dynamic Portals populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 3: INTERACTIVE MISSION MODAL/STAGE  -->
+        <!-- ========================================== -->
+        <section id="screenMissionModal" class="hidden w-full max-w-4xl glass-panel p-6 rounded-3xl box-glow space-y-6 relative">
+            <!-- Header Misi -->
+            <div class="flex justify-between items-start border-b border-amber-700/40 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div id="missionBadge" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-800 flex items-center justify-center text-2xl shadow-lg border border-amber-300">
+                        🌴
+                    </div>
+                    <div>
+                        <span id="missionCategory" class="text-xs font-bold text-amber-400 uppercase tracking-wider">MISI 1</span>
+                        <h2 id="missionTitle" class="text-xl sm:text-2xl font-title text-amber-100 font-bold">GERBANG MADINAH</h2>
+                    </div>
+                </div>
+                <button onclick="returnToMainMap()" class="bg-desert-900/80 hover:bg-amber-900/60 border border-amber-700/50 text-amber-300 text-xs px-3 py-1.5 rounded-xl flex items-center space-x-1">
+                    <i class="fa-solid fa-map"></i>
+                    <span>Kembali ke Peta</span>
+                </button>
+            </div>
+
+            <!-- Dialogue & Context Banner -->
+            <div id="missionNarrativeBox" class="parchment-bg p-4 rounded-2xl flex items-start space-x-4 border border-amber-600/50">
+                <div id="speakerAvatar" class="w-14 h-14 rounded-full bg-amber-900/80 border-2 border-amber-400 flex-shrink-0 flex items-center justify-center text-2xl">
+                    👳‍♂️
+                </div>
+                <div class="space-y-1">
+                    <h4 id="speakerName" class="text-xs font-bold text-amber-300 uppercase tracking-widest">Narator Perjalanan</h4>
+                    <p id="speakerText" class="text-sm sm:text-base text-desert-100 leading-relaxed">
+                        Masyarakat Madinah dibangun dengan kebersamaan dan rasa saling percaya. Mari kita mulai misi pertama!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Dynamic Interactive Area (Changes based on Mission) -->
+            <div id="missionInteractiveArea" class="bg-desert-night/80 border border-amber-700/40 rounded-2xl p-5 min-h-[220px] flex flex-col justify-center">
+                <!-- Content injected via JS -->
+            </div>
+
+            <!-- Mission Feedback Box -->
+            <div id="missionFeedback" class="hidden p-4 rounded-xl border text-sm sm:text-base leading-relaxed"></div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 4: FINAL CINEMATIC & REFLECTION     -->
+        <!-- ========================================== -->
+        <section id="screenFinal" class="hidden w-full max-w-4xl glass-panel p-6 rounded-3xl box-glow text-center space-y-6">
+            <div class="inline-block bg-emerald-500/20 border border-emerald-500/50 px-4 py-1.5 rounded-full text-emerald-300 text-xs font-bold uppercase tracking-widest">
+                🏆 PETUALANGAN SELESAI
+            </div>
+
+            <h2 class="font-title text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-300 to-emerald-400 text-glow">
+                MADINAH YANG BERSATU
+            </h2>
+
+            <p class="text-desert-200 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                Kalian telah mengumpulkan ke-6 <strong>Unity Stone</strong> dan memetik hikmah keteladanan Rasulullah SAW di Madinah!
+            </p>
+
+            <!-- Display 6 Collected Stones -->
+            <div id="finalStonesDisplay" class="flex flex-wrap justify-center gap-3 py-4">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Class Reflection Box -->
+            <div class="parchment-bg p-5 rounded-2xl text-left space-y-4 border border-amber-600/50 max-w-2xl mx-auto">
+                <h3 class="text-amber-300 font-bold text-base flex items-center">
+                    <i class="fa-solid fa-pen-nib mr-2 text-amber-400"></i> Refleksi Diskusi Kelas V SD:
+                </h3>
+                <label class="block text-xs sm:text-sm text-desert-200">
+                    Satu tindakan nyata yang akan kelompokmu lakukan untuk menjaga persatuan di kelas:
+                </label>
+                <textarea id="reflectionInput" rows="3" class="w-full bg-desert-night/90 border border-amber-600/50 rounded-xl p-3 text-amber-100 text-sm focus:outline-none focus:border-amber-400 custom-scrollbar" placeholder="Contoh: Kami akan selalu menghormati teman yang berbeda pendapat saat kerja kelompok dan saling membantu..."></textarea>
+
+                <div class="flex justify-end">
+                    <button onclick="saveClassCommitment()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-5 py-2.5 rounded-xl text-sm shadow-lg transition">
+                        <i class="fa-solid fa-scroll mr-2"></i> Buat Piagam Persatuan Kelas
+                    </button>
+                </div>
+            </div>
+
+            <div id="piagamCard" class="hidden glass-panel p-6 rounded-2xl border-2 border-amber-400 max-w-2xl mx-auto text-left space-y-3">
+                <div class="text-center border-b border-amber-500/30 pb-3">
+                    <h3 class="font-title text-xl text-amber-300 font-bold">📜 PIAGAM PERSATUAN KELAS V</h3>
+                    <p class="text-xs text-amber-400">Inspirasi Teladan Rasulullah SAW di Madinah</p>
+                </div>
+                <p id="piagamText" class="text-sm text-desert-100 italic leading-relaxed"></p>
+                <div class="text-right text-xs text-amber-300 font-semibold pt-2">
+                    — Pemimpin Muda Madinah Kelas V SD
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER STATUS -->
+    <footer class="relative z-10 p-3 text-center text-xs text-amber-500/70 border-t border-amber-900/40 bg-desert-night/80">
+        “TEMUKAN JALANNYA. SELESAIKAN MISINYA. BANGUN PERSATUANNYA.” — PAI & BUDI PEKERTI KELAS V SD
+    </footer>
+
+    <script>
+        /* ===================================================================
+           1. AUDIO ENGINE (Procedural Synth + Web Speech API Narrator)
+           =================================================================== */
+        class AudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.isMuted = false;
+                this.musicVolume = 0.4;
+                this.sfxVolume = 0.7;
+                this.voiceEnabled = true;
+
+                // Ambient Wind Node
+                this.windGain = null;
+                this.musicTimer = null;
+                this.isNarrating = false;
+
+                // Scale degrees for Middle Eastern Hijaz/Bayati melody synthesis
+                this.hijazFreqs = [220, 233.08, 277.18, 293.66, 329.63, 349.23, 392, 440];
+            }
+
+            init() {
+                if (this.ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+                this.startDesertWind();
+                this.startMusicLoop();
+            }
+
+            // Procedural Desert Wind ambience generator
+            startDesertWind() {
+                if (!this.ctx) return;
+                const bufferSize = this.ctx.sampleRate * 2;
+                const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+
+                const whiteNoise = this.ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 250;
+
+                this.windGain = this.ctx.createGain();
+                this.windGain.gain.value = 0.08 * this.sfxVolume;
+
+                whiteNoise.connect(filter);
+                filter.connect(this.windGain);
+                this.windGain.connect(this.ctx.destination);
+
+                whiteNoise.start();
+            }
+
+            // Procedural Background Music Loop (Soft Middle Eastern Flute/Oud Simulation)
+            startMusicLoop() {
+                if (this.musicTimer) clearInterval(this.musicTimer);
+
+                this.musicTimer = setInterval(() => {
+                    if (this.isMuted || !this.ctx || this.musicVolume <= 0) return;
+
+                    // Play dynamic gentle note
+                    const noteFreq = this.hijazFreqs[Math.floor(Math.random() * this.hijazFreqs.length)];
+                    this.playMelodyNote(noteFreq, 1.8);
+                }, 2200);
+            }
+
+            playMelodyNote(freq, duration) {
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                    // Dynamic ducking if narration is active
+                    const currentVol = this.isNarrating ? (this.musicVolume * 0.2) : this.musicVolume;
+
+                    gain.gain.setValueAtTime(0, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.08 * currentVol, this.ctx.currentTime + 0.3);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            // Interactive Sound Effects
+            playSFX(type) {
+                if (this.isMuted || !this.ctx || this.sfxVolume <= 0) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+                    gain.gain.setValueAtTime(0.15 * this.sfxVolume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                } else if (type === 'correct') {
+                    // Positive Chime
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2 * this.sfxVolume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                } else if (type === 'wrong') {
+                    // Gentle Error Sound
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.linearRampToValueAtTime(220, now + 0.25);
+                    gain.gain.setValueAtTime(0.15 * this.sfxVolume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                } else if (type === 'stone') {
+                    // Crystal Chime Achievement
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.setValueAtTime(1108.73, now + 0.12);
+                    osc.frequency.setValueAtTime(1318.51, now + 0.24);
+                    gain.gain.setValueAtTime(0.25 * this.sfxVolume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                } else if (type === 'whoosh') {
+                    // Portal Transition
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.3);
+                    gain.gain.setValueAtTime(0.18 * this.sfxVolume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                }
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.8);
+            }
+
+            // Web Speech API Voiceover with Music Ducking
+            speakNarrator(text) {
+                if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
+
+                window.speechSynthesis.cancel(); // Cancel current
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.95;
+                utterance.pitch = 1.0;
+
+                this.isNarrating = true;
+
+                utterance.onend = () => {
+                    this.isNarrating = false;
+                };
+
+                utterance.onerror = () => {
+                    this.isNarrating = false;
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        const audioEngine = new AudioEngine();
+
+        /* ===================================================================
+           2. CANVAS VISUALS (Background Dunes & Desert Atmosphere)
+           =================================================================== */
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+
+        let particles = [];
+        function resizeCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Dust Particle System
+        for (let i = 0; i < 65; i++) {
+            particles.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                radius: Math.random() * 2 + 0.5,
+                alpha: Math.random() * 0.5 + 0.2,
+                vx: Math.random() * 0.5 + 0.2,
+                vy: Math.random() * 0.2 - 0.1
+            });
+        }
+
+        function renderBG() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            // Warm Golden Sunset / Night Desert Gradient
+            const grad = bgCtx.createLinearGradient(0, 0, 0, bgCanvas.height);
+            grad.addColorStop(0, '#120b05');
+            grad.addColorStop(0.6, '#281708');
+            grad.addColorStop(1, '#0d0905');
+            bgCtx.fillStyle = grad;
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            // Floating Dust Particles
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x > bgCanvas.width) p.x = 0;
+                if (p.y > bgCanvas.height || p.y < 0) p.y = Math.random() * bgCanvas.height;
+
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                bgCtx.fillStyle = `rgba(251, 191, 36, ${p.alpha})`;
+                bgCtx.shadowBlur = 8;
+                bgCtx.shadowColor = '#fbbf24';
+                bgCtx.fill();
+            });
+
+            requestAnimationFrame(renderBG);
+        }
+        renderBG();
+
+        /* Ancient Map Canvas Generator */
+        function drawMapCanvas() {
+            const canvas = document.getElementById('mapCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            ctx.fillStyle = '#231508';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Map Routes
+            ctx.strokeStyle = '#b45309';
+            ctx.setLineDash([8, 8]);
+            ctx.lineWidth = 3;
+
+            // Route Path
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.15, canvas.height * 0.7);
+            ctx.quadraticCurveTo(canvas.width * 0.4, canvas.height * 0.2, canvas.width * 0.85, canvas.height * 0.3);
+            ctx.stroke();
+
+            // Makkah Node
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(canvas.width * 0.15, canvas.height * 0.7, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fde68a';
+            ctx.font = 'bold 12px Inter';
+            ctx.fillText('MAKKAH', canvas.width * 0.12, canvas.height * 0.7 + 25);
+
+            // Madinah Node
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(canvas.width * 0.85, canvas.height * 0.3, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#34d399';
+            ctx.fillText('MADINAH', canvas.width * 0.82, canvas.height * 0.3 - 20);
+        }
+
+        /* ===================================================================
+           3. GAME DATA & MISSIONS DEFINITIONS
+           =================================================================== */
+        const MISSIONS = [
+            {
+                id: 1,
+                title: 'GERBANG MADINAH',
+                category: 'MISI 1 — Fondasi Persatuan',
+                icon: '🌴',
+                stoneName: 'HARAPAN',
+                stoneIcon: '💎',
+                speaker: 'Penduduk Madinah',
+                speakerAvatar: '🧔',
+                narrative: 'Selamat datang di Madinah! Masyarakat di kota ini memiliki beragam latar belakang dan suku. Apa prinsip utama yang diajarkan Rasulullah SAW ketika pertama kali memasuki kota Madinah?',
+                interactiveType: 'quiz',
+                question: 'Sikap apakah yang diajarkan Rasulullah SAW untuk menyatukan masyarakat Madinah saat tiba?',
+                options: [
+                    { text: 'A. Menyebarkan kedamaian, memberi makan, dan mempererat tali persaudaraan.', correct: true },
+                    { text: 'B. Meminta seluruh penduduk hanya bergaul dengan kelompok sendiri.', correct: false },
+                    { text: 'C. Mengabaikan keberagaman dan membiarkan perselisihan antar suku.', correct: false },
+                    { text: 'D. Mendorong persaingan tidak sehat antar golongan.', correct: false }
+                ],
+                explanation: 'Rasulullah SAW mengajarkan untuk menebarkan kedamaian (salam), berbagi, dan membangun rasa saling percaya sebagai pintu utama persatuan!'
+            },
+            {
+                id: 2,
+                title: 'MASJID NABAWI',
+                category: 'MISI 2 — Pusat Kebersamaan',
+                icon: '🕌',
+                stoneName: 'KEBERSAMAAN',
+                stoneIcon: '🟢',
+                speaker: 'Sahabat Pembangun',
+                speakerAvatar: '🏗️',
+                narrative: 'Rasulullah SAW bersama kaum Muhajirin dan Ansar gotong royong membangun Masjid Nabawi bukan hanya sebagai tempat shalat, tetapi juga pusat pendidikan dan musyawarah.',
+                interactiveType: 'minigame_mosque',
+                instruction: 'Klik material bangunan berikut secara berurutan bersama kelompokmu untuk menyelesaikan pembangunan Masjid Nabawi!'
+            },
+            {
+                id: 3,
+                title: 'KAMPUNG UKHUWAH',
+                category: 'MISI 3 — Persaudaraan Islam',
+                icon: '🤝',
+                stoneName: 'UKHUWAH',
+                stoneIcon: '🔵',
+                speaker: 'Kaum Muhajirin & Ansar',
+                speakerAvatar: '👥',
+                narrative: 'Kaum Muhajirin tiba dari Makkah tanpa membawa harta benda. Rasulullah SAW mempersaudarakan setiap keluarga Muhajirin dengan keluarga Ansar di Madinah.',
+                interactiveType: 'matching_ukhuwah',
+                instruction: 'Cocokkan bentuk kepedulian Ansar kepada Muhajirin yang mencerminkan ukhuwah Islamiyah!'
+            },
+            {
+                id: 4,
+                title: 'PASAR MADINAH',
+                category: 'MISI 4 — Masyarakat Majemuk',
+                icon: '🌍',
+                stoneName: 'MENGHORMATI PERBEDAAN',
+                stoneIcon: '🟡',
+                speaker: 'Pedagang Madinah',
+                speakerAvatar: '🏺',
+                narrative: 'Pasar Madinah dipenuhi oleh suku Aus, Khazraj, Yahudi, dan pendatang lainnya. Keberagaman adalah kenyataan yang harus dijaga dengan keharmonisan.',
+                interactiveType: 'quiz',
+                question: 'Temanmu di pasar memiliki cara beribadah dan kebiasaan yang berbeda denganmu. Tindakan terpuji yang dicontohkan Rasulullah SAW adalah:',
+                options: [
+                    { text: 'A. Mengejek dan memintanya menjauhi lingkungan pasar.', correct: false },
+                    { text: 'B. Menghormati perbedaannya dan tetap bekerja sama secara jujur.', correct: true },
+                    { text: 'C. Memaksa mereka mengikuti seluruh kebiasaan kelompok kita.', correct: false },
+                    { text: 'D. Menjauhi perdagangan dengan kelompok yang berbeda suku.', correct: false }
+                ],
+                explanation: 'Rasulullah SAW mengajarkan toleransi dan kejujuran dalam berinteraksi dengan seluruh anggota masyarakat majemuk!'
+            },
+            {
+                id: 5,
+                title: 'BALAI KEADILAN',
+                category: 'MISI 5 — Piagam Madinah',
+                icon: '⚖️',
+                stoneName: 'KEADILAN',
+                stoneIcon: '🟣',
+                speaker: 'Duta Keadilan',
+                speakerAvatar: '📜',
+                narrative: 'Rasulullah SAW merumuskan Piagam Madinah (Madinah Charter), konstitusi tertulis pertama di dunia yang menjamin hak dan kewajiban seluruh warga Madinah secara adil.',
+                interactiveType: 'quiz',
+                question: 'Apa isi nilai penting dalam Piagam Madinah yang wajib kita teladani?',
+                options: [
+                    { text: 'A. Hanya memberikan perlindungan hukum bagi kelompok mayoritas.', correct: false },
+                    { text: 'B. Setiap warga Madinah berhak mendapatkan keadilan dan wajib menjaga keamanan kota bersama.', correct: true },
+                    { text: 'C. Menyerahkan seluruh keputusan hanya kepada suku tertentu.', correct: false },
+                    { text: 'D. Melarang kerja sama antar suku dalam menjaga keamanan.', correct: false }
+                ],
+                explanation: 'Piagam Madinah menegaskan bahwa semua warga memiliki kedudukan hukum yang sama dan tanggung jawab bersama membela kedamaian!'
+            },
+            {
+                id: 6,
+                title: 'JEMBATAN TELADAN',
+                category: 'MISI 6 — Madinah di Sekolah Kita',
+                icon: '⭐',
+                stoneName: 'KETELADANAN',
+                stoneIcon: '🌟',
+                speaker: 'Siswa Kelas V SD',
+                speakerAvatar: '🎓',
+                narrative: 'Nilai-nilai kepemimpinan Rasulullah SAW di Madinah sangat relevan untuk dipraktikkan di lingkungan sekolah kita saat ini!',
+                interactiveType: 'quiz',
+                question: 'Saat kerja kelompok di kelas V, terjadi perbedaan pendapat yang cukup sengit. Tindakan teladan sesuai karakter Rasulullah SAW adalah:',
+                options: [
+                    { text: 'A. Marah dan keluar dari kelompok.', correct: false },
+                    { text: 'B. Memusyawarahkan perbedaan dengan tenang dan menghargai masukan teman.', correct: true },
+                    { text: 'C. Mendorong kelompok untuk tidak menyelesaikan tugas.', correct: false },
+                    { text: 'D. Memaksa pendapat sendiri tanpa mendengarkan yang lain.', correct: false }
+                ],
+                explanation: 'Musyawarah dan saling menghargai adalah kunci menjaga persatuan di kelas, persis seperti musyawarah Rasulullah di Madinah!'
+            }
+        ];
+
+        let gameState = {
+            unlockedMission: 1,
+            collectedStones: [],
+            currentMissionId: null,
+            mosqueBuildStep: 0
+        };
+
+        /* ===================================================================
+           4. SCREEN NAVIGATION & GAME FLOW
+           =================================================================== */
+        function showScreen(screenId) {
+            const screens = ['screenIntro', 'screenFindWay', 'screenMainMap', 'screenMissionModal', 'screenFinal'];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            const target = document.getElementById(screenId);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+
+            if (screenId === 'screenFindWay') {
+                drawMapCanvas();
+                rotateCompass(45);
+            }
+        }
+
+        // Rotate Compass SFX Animation
+        function rotateCompass(deg) {
+            const needle = document.getElementById('compassNeedle');
+            if (needle) {
+                needle.style.transform = `rotate(${deg}deg)`;
+            }
+        }
+
+        // Start Button
+        document.getElementById('btnStartAdventure').addEventListener('click', () => {
+            audioEngine.init();
+            audioEngine.playSFX('whoosh');
+            showScreen('screenFindWay');
+            audioEngine.speakNarrator("Selamat datang, para Pemimpin Muda Madinah. Hari ini kalian akan melakukan sebuah perjalanan menuju Madinah. Temukan arah yang benar!");
+        });
+
+        // Path Choice Logic
+        function checkPathChoice(choice) {
+            audioEngine.playSFX('click');
+
+            if (choice === 'correct') {
+                rotateCompass(0);
+                audioEngine.playSFX('correct');
+                audioEngine.speakNarrator("Hebat! Kalian menemukan arah yang tepat menuju Madinah. Mari memasuki kota!");
+
+                setTimeout(() => {
+                    showScreen('screenMainMap');
+                    renderMainMap();
+                    audioEngine.speakNarrator("Lihat! Madinah sudah di depan mata. Jelajahi 6 portal misi!");
+                }, 1800);
+            } else {
+                rotateCompass(120);
+                audioEngine.playSFX('wrong');
+                audioEngine.speakNarrator("Belum tepat. Perhatikan kembali petunjuk arah menuju Utara.");
+            }
+        }
+
+        /* ===================================================================
+           5. MAIN MAP & PORTAL RENDERER
+           =================================================================== */
+        function renderMainMap() {
+            const grid = document.getElementById('portalGrid');
+            const stoneBag = document.getElementById('stoneBag');
+
+            // Render Stone Bag
+            stoneBag.innerHTML = '';
+            MISSIONS.forEach(m => {
+                const isCollected = gameState.collectedStones.includes(m.id);
+                const slot = document.createElement('div');
+                slot.className = `w-8 h-8 rounded-xl flex items-center justify-center text-sm border ${
+                    isCollected 
+                    ? 'bg-amber-500/30 border-amber-400 stone-glow text-amber-200' 
+                    : 'bg-desert-900/60 border-desert-700 text-desert-600'
+                }`;
+                slot.innerHTML = isCollected ? m.stoneIcon : '🔒';
+                slot.title = isCollected ? `Unity Stone: ${m.stoneName}` : 'Terkunci';
+                stoneBag.appendChild(slot);
+            });
+
+            // Render 6 Portals
+            grid.innerHTML = '';
+            MISSIONS.forEach(m => {
+                const isUnlocked = m.id <= gameState.unlockedMission;
+                const isCompleted = gameState.collectedStones.includes(m.id);
+
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-2xl parchment-bg border transition flex flex-col justify-between space-y-4 relative overflow-hidden ${
+                    isUnlocked 
+                    ? 'border-amber-500/80 hover:border-amber-300 hover:scale-[1.02] cursor-pointer box-glow' 
+                    : 'border-desert-800 opacity-60 grayscale'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-2xl">${m.icon}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${
+                            isCompleted 
+                            ? 'bg-emerald-900/80 text-emerald-300 border border-emerald-600' 
+                            : isUnlocked 
+                            ? 'bg-amber-900/80 text-amber-300 border border-amber-600' 
+                            : 'bg-desert-900 text-desert-500'
+                        }">
+                            ${isCompleted ? '✓ SELESAI' : isUnlocked ? 'TERBUKA' : 'TERKUNCI'}
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">${m.category}</span>
+                        <h3 class="font-title text-base text-amber-100 font-bold">${m.title}</h3>
+                    </div>
+
+                    <div class="pt-2 border-t border-amber-900/50 flex justify-between items-center text-xs">
+                        <span class="text-desert-300">Batu: <strong>${m.stoneName}</strong></span>
+                        <span class="text-amber-400 font-bold">${m.stoneIcon}</span>
+                    </div>
+                `;
+
+                if (isUnlocked) {
+                    card.onclick = () => openMissionModal(m.id);
+                }
+
+                grid.appendChild(card);
+            });
+
+            // Check if all 6 completed
+            if (gameState.collectedStones.length === 6) {
+                setTimeout(() => {
+                    triggerFinalCinematic();
+                }, 1000);
+            }
+        }
+
+        /* ===================================================================
+           6. MISSION MODAL & INTERACTIVE LOGIC
+           =================================================================== */
+        function openMissionModal(missionId) {
+            audioEngine.playSFX('whoosh');
+            gameState.currentMissionId = missionId;
+            const mission = MISSIONS.find(m => m.id === missionId);
+
+            document.getElementById('missionBadge').innerText = mission.icon;
+            document.getElementById('missionCategory').innerText = mission.category;
+            document.getElementById('missionTitle').innerText = mission.title;
+
+            document.getElementById('speakerAvatar').innerText = mission.speakerAvatar;
+            document.getElementById('speakerName').innerText = mission.speaker;
+            document.getElementById('speakerText').innerText = mission.narrative;
+
+            const feedback = document.getElementById('missionFeedback');
+            feedback.className = 'hidden';
+
+            const container = document.getElementById('missionInteractiveArea');
+            container.innerHTML = '';
+
+            audioEngine.speakNarrator(mission.narrative);
+
+            // Render specific interactive module
+            if (mission.interactiveType === 'quiz') {
+                renderQuizModule(mission, container);
+            } else if (mission.interactiveType === 'minigame_mosque') {
+                renderMosqueMiniGame(mission, container);
+            } else if (mission.interactiveType === 'matching_ukhuwah') {
+                renderUkhuwahMatchingGame(mission, container);
+            }
+
+            showScreen('screenMissionModal');
+        }
+
+        // Quiz Module Renderer
+        function renderQuizModule(mission, container) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4';
+
+            wrapper.innerHTML = `
+                <p class="font-semibold text-amber-200 text-sm sm:text-base">${mission.question}</p>
+                <div class="grid grid-cols-1 gap-2.5">
+                    ${mission.options.map((opt, idx) => `
+                        <button onclick="handleQuizAnswer(${idx}, ${opt.correct})" class="p-3 rounded-xl bg-desert-900/80 border border-amber-700/50 hover:border-amber-400 hover:bg-amber-900/40 text-left text-xs sm:text-sm text-desert-100 transition flex items-start space-x-2">
+                            <span>${opt.text}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(wrapper);
+        }
+
+        function handleQuizAnswer(index, isCorrect) {
+            const mission = MISSIONS.find(m => m.id === gameState.currentMissionId);
+            const feedback = document.getElementById('missionFeedback');
+
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                audioEngine.playSFX('correct');
+                audioEngine.playSFX('stone');
+
+                feedback.className = 'p-4 rounded-xl bg-emerald-900/80 border border-emerald-500 text-emerald-100 text-sm space-y-2';
+                feedback.innerHTML = `
+                    <div class="font-bold text-emerald-300 flex items-center">
+                        <i class="fa-solid fa-circle-check mr-2"></i> Jawaban Tepat sekali!
+                    </div>
+                    <p>${mission.explanation}</p>
+                    <div class="pt-2 text-amber-300 font-bold flex items-center">
+                        <span>Diperoleh: Unity Stone ${mission.stoneName} (${mission.stoneIcon})</span>
+                    </div>
+                `;
+
+                audioEngine.speakNarrator(`Luar biasa! Misi selesai. Kalian mendapatkan Unity Stone ${mission.stoneName}!`);
+
+                if (!gameState.collectedStones.includes(mission.id)) {
+                    gameState.collectedStones.push(mission.id);
+                    if (gameState.unlockedMission < mission.id + 1 && mission.id < 6) {
+                        gameState.unlockedMission = mission.id + 1;
+                    }
+                }
+            } else {
+                audioEngine.playSFX('wrong');
+                feedback.className = 'p-4 rounded-xl bg-amber-950/80 border border-amber-600 text-amber-200 text-sm';
+                feedback.innerHTML = `
+                    <div class="font-bold text-amber-400 flex items-center">
+                        <i class="fa-solid fa-circle-info mr-2"></i> Belum tepat
+                    </div>
+                    <p>Diskusikan kembali bersama kelompokmu dan pilih solusi terbaik!</p>
+                `;
+                audioEngine.speakNarrator("Mari berdiskusi kembali dengan kelompokmu.");
+            }
+        }
+
+        // Mini Game 2: Mosque Building
+        function renderMosqueMiniGame(mission, container) {
+            gameState.mosqueBuildStep = 0;
+            const steps = [
+                { name: 'Batu Fondasi', icon: '🪨', desc: 'Meletakkan dasar bangunan yang kokoh' },
+                { name: 'Tiang Batang Kurma', icon: '🪵', desc: 'Mendirikan tiang-tiang penyangga kebersamaan' },
+                { name: 'Atap Daun Kurma', icon: '🌿', desc: 'Memasang atap peneduh seluruh masyarakat' }
+            ];
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4 text-center';
+
+            wrapper.innerHTML = `
+                <p class="text-sm text-amber-200">${mission.instruction}</p>
+                
+                <div id="mosqueVisual" class="h-32 bg-desert-900/90 rounded-xl border border-amber-700/50 flex items-center justify-center text-4xl space-x-3">
+                    <span class="opacity-30">🏗️</span>
+                    <span id="builtProgressText" class="text-sm text-amber-400 font-bold">Progres: 0 / 3 Material</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    ${steps.map((s, idx) => `
+                        <button id="mosqueStepBtn-${idx}" onclick="addMosqueMaterial(${idx})" class="p-3 rounded-xl bg-desert-900/80 border border-amber-600/60 hover:border-amber-300 text-center space-y-1 group">
+                            <div class="text-2xl group-hover:scale-110 transition">${s.icon}</div>
+                            <div class="font-bold text-xs text-amber-300">${s.name}</div>
+                            <div class="text-[10px] text-desert-300">${s.desc}</div>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            container.appendChild(wrapper);
+        }
+
+        function addMosqueMaterial(stepIdx) {
+            if (stepIdx === gameState.mosqueBuildStep) {
+                audioEngine.playSFX('click');
+                gameState.mosqueBuildStep++;
+
+                const btn = document.getElementById(`mosqueStepBtn-${stepIdx}`);
+                if (btn) {
+                    btn.classList.add('opacity-50', 'pointer-events-none', 'bg-emerald-950/60');
+                    btn.innerHTML += `<div class="text-xs text-emerald-400 font-bold mt-1">✓ Terpasang</div>`;
+                }
+
+                const progressText = document.getElementById('builtProgressText');
+                if (progressText) {
+                    progressText.innerText = `Progres: ${gameState.mosqueBuildStep} / 3 Material`;
+                }
+
+                if (gameState.mosqueBuildStep === 3) {
+                    const mission = MISSIONS.find(m => m.id === 2);
+                    audioEngine.playSFX('correct');
+                    audioEngine.playSFX('stone');
+
+                    const visual = document.getElementById('mosqueVisual');
+                    if (visual) {
+                        visual.innerHTML = `<div class="text-center"><span class="text-5xl">🕌</span><p class="text-xs text-emerald-300 font-bold mt-1">Masjid Nabawi Selesai Dibangun!</p></div>`;
+                    }
+
+                    const feedback = document.getElementById('missionFeedback');
+                    feedback.classList.remove('hidden');
+                    feedback.className = 'p-4 rounded-xl bg-emerald-900/80 border border-emerald-500 text-emerald-100 text-sm space-y-2';
+                    feedback.innerHTML = `
+                        <div class="font-bold text-emerald-300">✓ Pembangunan Gotong Royong Berhasil!</div>
+                        <p>Masjid menjadi simbol kebersamaan tanpa memandang kedudukan sosial.</p>
+                        <p class="font-bold text-amber-300">Diperoleh: Unity Stone Kebersamaan (🟢)</p>
+                    `;
+
+                    audioEngine.speakNarrator("Masjid Nabawi berhasil dibangun! Kalian mendapatkan Unity Stone Kebersamaan.");
+
+                    if (!gameState.collectedStones.includes(2)) {
+                        gameState.collectedStones.push(2);
+                        if (gameState.unlockedMission < 3) gameState.unlockedMission = 3;
+                    }
+                }
+            } else if (stepIdx > gameState.mosqueBuildStep) {
+                audioEngine.playSFX('wrong');
+                audioEngine.speakNarrator("Pasang material secara berurutan mulai dari fondasi!");
+            }
+        }
+
+        // Mini Game 3: Ukhuwah Matching
+        function renderUkhuwahMatchingGame(mission, container) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4';
+
+            wrapper.innerHTML = `
+                <p class="text-sm text-amber-200 text-center">${mission.instruction}</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button onclick="resolveUkhuwahChoice(true)" class="p-4 rounded-xl bg-desert-900 border border-amber-600/60 hover:border-amber-300 text-left space-y-2">
+                        <div class="font-bold text-amber-300 text-sm">Sikap A: Saling Berbagi & Menolong</div>
+                        <p class="text-xs text-desert-200">Ansar berbagi rumah, tempat tinggal, dan modal usaha dengan saudara Muhajirin tanpa pamrih.</p>
+                    </button>
+
+                    <button onclick="resolveUkhuwahChoice(false)" class="p-4 rounded-xl bg-desert-900 border border-amber-600/60 hover:border-amber-300 text-left space-y-2">
+                        <div class="font-bold text-amber-300 text-sm">Sikap B: Acuh & Membiarkan</div>
+                        <p class="text-xs text-desert-200">Meminta kaum Muhajirin mencari bantuan sendiri tanpa pendampingan rasa persaudaraan.</p>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(wrapper);
+        }
+
+        function resolveUkhuwahChoice(isCorrect) {
+            const feedback = document.getElementById('missionFeedback');
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                audioEngine.playSFX('correct');
+                audioEngine.playSFX('stone');
+
+                feedback.className = 'p-4 rounded-xl bg-emerald-900/80 border border-emerald-500 text-emerald-100 text-sm space-y-2';
+                feedback.innerHTML = `
+                    <div class="font-bold text-emerald-300">✓ Sungguh Teladan Ukhuwah yang Indah!</div>
+                    <p>Persaudaraan Muhajirin dan Ansar menjadi bukti abadi bahwa ikatan iman mempererat rasa kebersamaan.</p>
+                    <p class="font-bold text-amber-300">Diperoleh: Unity Stone Ukhuwah (🔵)</p>
+                `;
+
+                audioEngine.speakNarrator("Sikap saling membantu adalah inti ukhuwah! Diperoleh Unity Stone Ukhuwah.");
+
+                if (!gameState.collectedStones.includes(3)) {
+                    gameState.collectedStones.push(3);
+                    if (gameState.unlockedMission < 4) gameState.unlockedMission = 4;
+                }
+            } else {
+                audioEngine.playSFX('wrong');
+                feedback.className = 'p-4 rounded-xl bg-amber-950/80 border border-amber-600 text-amber-200 text-sm';
+                feedback.innerHTML = `<p>Sikap tersebut belum mencerminkan ukhuwah Islamiyah. Pilihlah kepedulian bersama!</p>`;
+                audioEngine.speakNarrator("Pilihlah bentuk kepedulian yang diajarkan Rasulullah SAW.");
+            }
+        }
+
+        function returnToMainMap() {
+            audioEngine.playSFX('click');
+            showScreen('screenMainMap');
+            renderMainMap();
+        }
+
+        /* ===================================================================
+           7. FINAL CINEMATIC & CLASSROOM REFLECTION
+           =================================================================== */
+        function triggerFinalCinematic() {
+            showScreen('screenFinal');
+            audioEngine.playSFX('stone');
+
+            const container = document.getElementById('finalStonesDisplay');
+            container.innerHTML = '';
+
+            MISSIONS.forEach(m => {
+                const el = document.createElement('div');
+                el.className = 'p-3 rounded-2xl parchment-bg border border-amber-400 text-center space-y-1 w-28 stone-glow';
+                el.innerHTML = `
+                    <div class="text-3xl">${m.stoneIcon}</div>
+                    <div class="text-[10px] font-bold text-amber-300 uppercase">${m.stoneName}</div>
+                `;
+                container.appendChild(el);
+            });
+
+            audioEngine.speakNarrator("Selamat! Kalian telah menyelesaikan seluruh petualangan dan mengumpulkan enam Unity Stone. Bawa nilai Madinah ke sekolah kita!");
+        }
+
+        function saveClassCommitment() {
+            const input = document.getElementById('reflectionInput').value.trim();
+            if (!input) {
+                audioEngine.playSFX('wrong');
+                alert("Silakan isi satu komitmen persatuan kelompokmu terlebih dahulu!");
+                return;
+            }
+
+            audioEngine.playSFX('correct');
+            const card = document.getElementById('piagamCard');
+            const text = document.getElementById('piagamText');
+
+            text.innerText = `“Kami siswa Kelas V SD berjanji meneladani kepemimpinan Rasulullah SAW di Madinah dengan tindakan nyata: ${input}”`;
+            card.classList.remove('hidden');
+
+            audioEngine.speakNarrator("Piagam Persatuan Kelas V berhasil dibuat. Jadilah pemimpin muda pembawa kedamaian!");
+        }
+
+        /* ===================================================================
+           8. AUDIO CONTROLS HANDLER
+           =================================================================== */
+        document.getElementById('sliderMusic').addEventListener('input', (e) => {
+            audioEngine.musicVolume = parseFloat(e.target.value);
+        });
+
+        document.getElementById('sliderSFX').addEventListener('input', (e) => {
+            audioEngine.sfxVolume = parseFloat(e.target.value);
+            if (audioEngine.windGain) {
+                audioEngine.windGain.gain.value = 0.08 * audioEngine.sfxVolume;
+            }
+        });
+
+        document.getElementById('btnToggleVoice').addEventListener('click', () => {
+            audioEngine.voiceEnabled = !audioEngine.voiceEnabled;
+            const statusSpan = document.getElementById('voiceStatusText');
+            if (statusSpan) {
+                statusSpan.innerText = audioEngine.voiceEnabled ? 'Suara: ON' : 'Suara: OFF';
+            }
+            if (!audioEngine.voiceEnabled && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        });
+    </script>
+</body>
+</html>
